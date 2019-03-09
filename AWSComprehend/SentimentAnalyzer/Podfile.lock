@@ -1,0 +1,21 @@
+PODS:
+  - AWSComprehend (2.9.2):
+    - AWSCore (= 2.9.2)
+  - AWSCore (2.9.2)
+
+DEPENDENCIES:
+  - AWSComprehend
+  - AWSCore
+
+SPEC REPOS:
+  https://github.com/cocoapods/specs.git:
+    - AWSComprehend
+    - AWSCore
+
+SPEC CHECKSUMS:
+  AWSComprehend: 08f6a73da806d540530c67833e84f72c5f0e9868
+  AWSCore: b1675e12bd3f2b313dc96c5b6a336e23380e51a2
+
+PODFILE CHECKSUM: 95980e832e35bc47db502ec340ae4b3486c516ca
+
+COCOAPODS: 1.5.3
