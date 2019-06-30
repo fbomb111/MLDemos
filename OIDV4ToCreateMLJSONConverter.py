@@ -12,7 +12,7 @@ __author__ = 'Frankie Cleary'
 parser = argparse.ArgumentParser(description='The output will be JSON')
 parser.add_argument('-i','--images', help='Path to images folder',required=True)
 parser.add_argument('-l','--labels', help='Path to labels folder',required=True)
-parser.add_argument('-o','--output',help='Output file name', required=True)
+parser.add_argument('-o','--output',help='Output file prefix name', required=True)
 args = parser.parse_args()
  
 ## show values ##
