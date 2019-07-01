@@ -2,31 +2,32 @@ Welcome!  If you've stumbled here and notice something wrong please open an issu
 
 # MLDemos
 
-
-## Project 1:
-
-### Housing classification - Descision Tree
+### Housing classification with sklearn Descision Tree
 
 Tutorial: http://www.r2d3.us/visual-intro-to-machine-learning-part-1/
 
 Dataset: https://github.com/jadeyee/r2d3-part-1-data/blob/master/part_1_data.csv
 
 
-## Project 2:
-
-### MNIST example in Keras - CNN
+### MNIST CNN with Keras
 
 https://github.com/fbomb111/MLDemos/blob/master/MNISTInKeras/MNIST%20in%20Keras.ipynb
 
 A detailed look into CNN's with Keras and final output to Apple's CoreML `.mlmodel`
 
-## Project 3:
 
-### AWSComprehend
+### iOS Sentiment Analysis with AWSComprehend
 
 https://github.com/fbomb111/MLDemos/tree/master/AWSComprehend
 
 Both a python notebook and iOS application to give a quick and simple sentiment analysis based on user-entered text using AWSComprehend
+
+
+### Image Classifier with CreateML
+
+https://github.com/fbomb111/MLDemos/blob/master/CreateML/Image%20Classification%20with%20CreateML%20a%20la%20code.md
+
+Walkthrough using Apple's [CreateML](https://developer.apple.com/documentation/createml) framework to do some basic image calssification programatically, plus some variations and explanations along the way.
 
 
 ## Converters (object detection)
