@@ -1,3 +1,5 @@
+Welcome!  If you've stumbled here and notice something wrong please open an issue or PR.  Much to learn in ML and Python I still have.  Thanks!
+
 # MLDemos
 
 
