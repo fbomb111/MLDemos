@@ -2,11 +2,12 @@
 import argparse
 import pandas as pd
 from sklearn import preprocessing
+from sklearn.model_selection import train_test_split
 
 __author__ = 'Frankie Cleary'
 
 parser = argparse.ArgumentParser(description='Input should be CSV. The output will be CSV')
-parser.add_argument('-i','--input', help='Input folder name',required=True)
+parser.add_argument('-i','--input', help='Input csv name',required=True)
 parser.add_argument('-o','--output',help='Output file prefix name', required=True)
 args = parser.parse_args()
 
@@ -35,7 +36,20 @@ for index in range(1, numOfSubColumns):
     allDF = allDF.merge(subDF, on='image', how='inner', suffixes=('_' + str(index), '_' + str(index + 1)))
 
 # insert the object data
-allDF.insert(0, 'headerWidth', '2')
-allDF.insert(1, 'objectWidth', numOfColumns)
+df = allDF
+df.insert(0, 'headerWidth', '2')
+df.insert(1, 'objectWidth', numOfColumns)
 
-allDF.to_csv(args.output + '.csv')
+df = df.rename_axis('image').reset_index()
+
+# send image column to the end
+order = df.columns.tolist()[1:] + ['image']
+df = df[order]
+
+# fill all blanks with 0 
+df = df.fillna(0)
+
+# split into 80/20 train/test and export as .lst
+train, test = train_test_split(df, test_size=0.2)
+train.to_csv(args.output + '_train' + '.lst', sep='\t', float_format='%.4f', header=None)
+test.to_csv(args.output + '_test' + '.lst', sep='\t', float_format='%.4f', header=None)
