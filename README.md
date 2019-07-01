@@ -27,7 +27,7 @@ Both a python notebook and iOS application to give a quick and simple sentiment 
 
 https://github.com/fbomb111/MLDemos/blob/master/CreateML/Image%20Classification%20with%20CreateML%20a%20la%20code.md
 
-Walkthrough using Apple's [CreateML](https://developer.apple.com/documentation/createml) framework to do some basic image calssification programatically, plus some variations and explanations along the way.
+Walkthrough using Apple's [CreateML](https://developer.apple.com/documentation/createml) framework to do some basic image classification programatically, plus some variations and explanations along the way.
 
 
 ## Converters (object detection)
