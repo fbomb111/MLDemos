@@ -27,10 +27,16 @@ Both a python notebook and iOS application to give a quick and simple sentiment 
 ## Converters (object detection)
 
 
-### OIDV4ToCreateMLJSONConverter.py
+### [OIDV4ToCreateMLJSONConverter.py](https://github.com/fbomb111/MLDemos/blob/master/Converters/OIDV4ToCreateMLJSONConverter.py)
 
-Converts from Google's Open Images Database, using the [OIDV4 tool](https://github.com/EscVM/OIDv4_ToolKit)), to a JSON format that can be used with [Apple's Create ML Object Detector](https://developer.apple.com/documentation/createml/mlobjectdetector/datasource).
+Converts from [Google's Open Images Database](https://storage.googleapis.com/openimages/web/index.html), using the [OIDV4 tool](https://github.com/EscVM/OIDv4_ToolKit)), to a JSON format that can be used with [Apple's Create ML Object Detector](https://developer.apple.com/documentation/createml/mlobjectdetector/datasource).
 
-### SimpleAnnotatorCSVToCreateMLJSONConverter.py
+### [SimpleAnnotatorCSVToCreateMLJSONConverter.py](https://github.com/fbomb111/MLDemos/blob/master/Converters/SimpleAnnotatorCSVToCreateMLJSONConverter.py)
 
 Converts the CSV output from the [Simple Annotator Tool](https://github.com/sgp715/simple_image_annotator), to a JSON format that can be used with [Apple's Create ML Object Detector](https://developer.apple.com/documentation/createml/mlobjectdetector/datasource).
+
+### [SimpleAnnotatorCSVToRecordIOLST.py](https://github.com/fbomb111/MLDemos/blob/master/Converters/SimpleAnnotatorCSVToRecordIOLST.py)
+
+Converts the CSV output from the [Simple Annotator Tool](https://github.com/sgp715/simple_image_annotator), to the LST format required before conversion to REC format. [MXNet format details here](https://mxnet.apache.org/api/python/image/image.html#image-iterator-for-object-detection). 
+
+More to come when I get this working with [AWS SageMaker Object Detection Algorithm](https://docs.aws.amazon.com/sagemaker/latest/dg/object-detection.html)
