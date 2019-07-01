@@ -14,6 +14,9 @@ Dataset: https://github.com/jadeyee/r2d3-part-1-data/blob/master/part_1_data.csv
 
 ### MNIST example in Keras - CNN
 
+https://github.com/fbomb111/MLDemos/blob/master/MNISTInKeras/MNIST%20in%20Keras.ipynb
+
+A detailed look into CNN's with Keras and final output to Apple's CoreML `.mlmodel`
 
 ## Project 3:
 
