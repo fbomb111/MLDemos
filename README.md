@@ -2,7 +2,7 @@ Welcome!  If you've stumbled here and notice something wrong please open an issu
 
 # MLDemos
 
-### Housing classification with sklearn Descision Tree
+### Housing classification with sklearn Decision Tree
 
 Tutorial: http://www.r2d3.us/visual-intro-to-machine-learning-part-1/
 
