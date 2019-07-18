@@ -46,3 +46,18 @@ Converts the CSV output from the [Simple Annotator Tool](https://github.com/sgp7
 Converts the CSV output from the [Simple Annotator Tool](https://github.com/sgp715/simple_image_annotator), to the LST format required before conversion to REC format. [MXNet format details here](https://mxnet.apache.org/api/python/image/image.html#image-iterator-for-object-detection). 
 
 More to come when I get this working with [AWS SageMaker Object Detection Algorithm](https://docs.aws.amazon.com/sagemaker/latest/dg/object-detection.html)
+
+### Other helpful commands
+```python
+# create lst file
+
+python ~/SimpleAnnotatorCSVToRecordIOLSTConverter.py --csv ~/path/myAnnotationsCSV.csv --images ~/path/mySourceImagesFolder --output ~/path/myOutputLocation
+
+# create rec file
+
+python ~/incubator-mxnet/tools/im2rec.py ~/my_train.lst ~/path/mySourceImagesFolder --recursive --pass-through --pack-label --num-thread 8
+
+# upload to s3
+
+aws s3 cp ~/my_train.rec 's3://my-bucket/train/train.rec'
+```
