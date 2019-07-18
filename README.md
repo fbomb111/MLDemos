@@ -2,31 +2,32 @@ Welcome!  If you've stumbled here and notice something wrong please open an issu
 
 # MLDemos
 
-
-## Project 1:
-
-### Housing classification - Descision Tree
+### Housing classification with sklearn Decision Tree
 
 Tutorial: http://www.r2d3.us/visual-intro-to-machine-learning-part-1/
 
 Dataset: https://github.com/jadeyee/r2d3-part-1-data/blob/master/part_1_data.csv
 
 
-## Project 2:
-
-### MNIST example in Keras - CNN
+### MNIST CNN with Keras
 
 https://github.com/fbomb111/MLDemos/blob/master/MNISTInKeras/MNIST%20in%20Keras.ipynb
 
 A detailed look into CNN's with Keras and final output to Apple's CoreML `.mlmodel`
 
-## Project 3:
 
-### AWSComprehend
+### iOS Sentiment Analysis with AWSComprehend
 
 https://github.com/fbomb111/MLDemos/tree/master/AWSComprehend
 
 Both a python notebook and iOS application to give a quick and simple sentiment analysis based on user-entered text using AWSComprehend
+
+
+### Image Classifier with CreateML
+
+https://github.com/fbomb111/MLDemos/blob/master/CreateML/Image%20Classification%20with%20CreateML%20a%20la%20code.md
+
+Walkthrough using Apple's [CreateML](https://developer.apple.com/documentation/createml) framework to do some basic image classification programatically, plus some variations and explanations along the way.
 
 
 ## Converters (object detection)
@@ -45,3 +46,18 @@ Converts the CSV output from the [Simple Annotator Tool](https://github.com/sgp7
 Converts the CSV output from the [Simple Annotator Tool](https://github.com/sgp715/simple_image_annotator), to the LST format required before conversion to REC format. [MXNet format details here](https://mxnet.apache.org/api/python/image/image.html#image-iterator-for-object-detection). 
 
 More to come when I get this working with [AWS SageMaker Object Detection Algorithm](https://docs.aws.amazon.com/sagemaker/latest/dg/object-detection.html)
+
+### Other helpful commands
+```python
+# create lst file
+
+python ~/SimpleAnnotatorCSVToRecordIOLSTConverter.py --csv ~/path/myAnnotationsCSV.csv --images ~/path/mySourceImagesFolder --output ~/path/myOutputLocation
+
+# create rec file
+
+python ~/incubator-mxnet/tools/im2rec.py ~/my_train.lst ~/path/mySourceImagesFolder --recursive --pass-through --pack-label --num-thread 8
+
+# upload to s3
+
+aws s3 cp ~/my_train.rec 's3://my-bucket/train/train.rec'
+```
