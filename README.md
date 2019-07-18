@@ -30,6 +30,13 @@ https://github.com/fbomb111/MLDemos/blob/master/CreateML/Image%20Classification%
 Walkthrough using Apple's [CreateML](https://developer.apple.com/documentation/createml) framework to do some basic image classification programatically, plus some variations and explanations along the way.
 
 
+### Object Detection with AWS SageMaker
+
+https://github.com/fbomb111/MLDemos/blob/master/AWSSageMakerObjectDetection.ipynb
+
+Use the tools and converters below along with the above notebook to help make your way through [this difficult documentation from AWS](https://docs.aws.amazon.com/sagemaker/latest/dg/object-detection.html).
+
+
 ## Converters (object detection)
 
 
