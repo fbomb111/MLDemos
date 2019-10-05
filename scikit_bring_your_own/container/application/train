@@ -9,12 +9,12 @@ from __future__ import print_function
 import os
 import json
 import pickle
-import sys
 import traceback
-
+import sys
 import pandas as pd
-
 from sklearn import tree
+
+# sys.path.insert(0, 'src/models/train_model.py')
 
 # These are the paths to where SageMaker mounts interesting things in your container.
 
@@ -36,7 +36,7 @@ def train():
     try:
         # Read in any hyperparameters that the user passed with the training job
         with open(param_path, 'r') as tc:
-            trainingParams = json.load(tc)
+            params = json.load(tc)
 
         # Take the set of files and read them all into a single pandas dataframe
         input_files = [ os.path.join(training_path, file) for file in os.listdir(training_path) ]
@@ -45,27 +45,13 @@ def train():
                               'This usually indicates that the channel ({}) was incorrectly specified,\n' +
                               'the data specification in S3 was incorrectly specified or the role specified\n' +
                               'does not have permission to access the data.').format(training_path, channel_name))
-        raw_data = [ pd.read_csv(file, header=None) for file in input_files ]
-        train_data = pd.concat(raw_data)
+        model = train_from_files(input_files, params)
 
-        # labels are in the first column
-        train_y = train_data.ix[:,0]
-        train_X = train_data.ix[:,1:]
-
-        # Here we only support a single hyperparameter. Note that hyperparameters are always passed in as
-        # strings, so we need to do any necessary conversions.
-        max_leaf_nodes = trainingParams.get('max_leaf_nodes', None)
-        if max_leaf_nodes is not None:
-            max_leaf_nodes = int(max_leaf_nodes)
-
-        # Now use scikit-learn's decision tree classifier to train the model.
-        clf = tree.DecisionTreeClassifier(max_leaf_nodes=max_leaf_nodes)
-        clf = clf.fit(train_X, train_y)
-
-        # save the model
-        with open(os.path.join(model_path, 'decision-tree-model.pkl'), 'w') as out:
-            pickle.dump(clf, out)
-        print('Training complete.')
+            # save the model
+        with open(os.path.join(model_path, 'application-model.pkl'), 'w') as out:
+            pickle.dump(model, out)
+        print('Training complete.') 
+        
     except Exception as e:
         # Write out an error file. This will be returned as the failureReason in the
         # DescribeTrainingJob result.
@@ -75,7 +61,28 @@ def train():
         # Printing this causes the exception to be in the training job logs, as well.
         print('Exception during training: ' + str(e) + '\n' + trc, file=sys.stderr)
         # A non-zero exit code causes the training job to be marked as Failed.
-        sys.exit(255)
+        sys.exit(255)  
+        
+def train_from_files(input_files, params):
+
+    raw_data = [ pd.read_csv(file, header=None) for file in input_files ]
+    train_data = pd.concat(raw_data)
+
+    # labels are in the first column
+    train_y = train_data.ix[:,0]
+    train_X = train_data.ix[:,1:]
+
+    # Here we only support a single hyperparameter. Note that hyperparameters are always passed in as
+    # strings, so we need to do any necessary conversions.
+    max_leaf_nodes = params.get('max_leaf_nodes', None)
+    if max_leaf_nodes is not None:
+        max_leaf_nodes = int(max_leaf_nodes)
+
+    # Now use scikit-learn's decision tree classifier to train the model.
+    model = tree.DecisionTreeClassifier(max_leaf_nodes=max_leaf_nodes)
+    model = model.fit(train_X, train_y)
+
+    return model     
 
 if __name__ == '__main__':
     train()

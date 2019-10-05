@@ -34,6 +34,6 @@ ENV PYTHONDONTWRITEBYTECODE=TRUE
 ENV PATH="/opt/program:${PATH}"
 
 # Set up the program in the image
-COPY decision_trees /opt/program
+COPY application /opt/program
 WORKDIR /opt/program
 
