@@ -6,8 +6,19 @@
 #################################################################################
 
 PROJECT_DIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
-PROJECT_NAME = aaml-tc01-mnist
+PROJECT_NAME = sagemaker-byo-iris
 PYTHON_INTERPRETER = python3
+
+# name that docker will use for creating the image which will also be uploaded to AWS ECR
+DOCKER_IMAGE_NAME = $(PROJECT_NAME)
+DOCKER_IMAGE_NAME_IS_VALID := $(shell [[ $(DOCKER_IMAGE_NAME) =~ ^[a-zA-Z0-9](-*[a-zA-Z0-9])*$$ ]] && echo TRUE || echo FALSE)
+DOCKER_IMAGE_EXISTS := $(shell docker images -q $(DOCKER_IMAGE_NAME))
+
+# S3 bucket prefix
+S3_BUCKET_PREFIX = arn:aws:s3:::sagemaker-us-east-2-117588387775
+
+# IAM Role with sagemaker permissions
+IAM_ROLE = arn:aws:iam::117588387775:role/service-role/AmazonSageMaker-ExecutionRole-20190513T204887
 
 ifeq (,$(shell which conda))
 HAS_CONDA=False
@@ -39,13 +50,13 @@ lint:
 ## Set up python interpreter environment
 create_environment:
 ifeq (True,$(HAS_CONDA))
-		@echo ">>> Detected conda, creating conda environment."
+	@echo ">>> Detected conda, creating conda environment."
 ifeq (3,$(findstring 3,$(PYTHON_INTERPRETER)))
 	conda create --name $(PROJECT_NAME) python=3
 else
 	conda create --name $(PROJECT_NAME) python=2.7
 endif
-		@echo ">>> New conda env created. Activate with:\nsource activate $(PROJECT_NAME)"
+	@echo ">>> New conda env created. Activate with:\nsource activate $(PROJECT_NAME)"
 else
 	$(PYTHON_INTERPRETER) -m pip install -q virtualenv virtualenvwrapper
 	@echo ">>> Installing virtualenvwrapper if not already installed.\nMake sure the following lines are in shell startup file\n\
@@ -66,13 +77,7 @@ git:
 # PROJECT RULES                                                                 #
 #################################################################################
 
-features: src/data/external/train.csv src/data/external/test.csv requirements
-	$(PYTHON_INTERPRETER) src/features/build_features.py
-
-train: src/data/processed/X_train.npy src/data/processed/y_train.npy requirements
-	$(PYTHON_INTERPRETER) src/models/train_model.py
-
-predict: models/model.h5 src/data/external/test.csv requirements
+predict: models/model.h5 requirements
 	$(PYTHON_INTERPRETER) src/models/predict_model.py
 
 submit: ~/.kaggle/kaggle.json src/data/processed/submission.csv
@@ -86,23 +91,34 @@ grade: src/data/processed/submission.csv
 ~/.kaggle/kaggle.json:
 	@echo "Configuration error.  Please review the Kaggle setup instructions at https://github.com/Kaggle/kaggle-api#api-credentials"; exit 1;
 
-src/data/external/train.csv: ~/.kaggle/kaggle.json
-	kaggle competitions download -c digit-recognizer -f train.csv -p src/data/external --force
-
-src/data/external/test.csv: ~/.kaggle/kaggle.json
-	kaggle competitions download -c digit-recognizer -f test.csv -p src/data/external --force
-
 models/model.h5: train
 
 src/data/processed/submission.csv: predict
 
-src/data/processed/X_train.npy: features
+#################################################################################
+# DEPLOYMENT COMMANDS                                                           #
+#################################################################################
 
-src/data/processed/X_test.npy: features
+train_local: requirements	
+ifeq ($(DOCKER_IMAGE_NAME_IS_VALID),)
+	@echo "Image name * $(DOCKER_IMAGE_NAME) * failed to satisfy constraint: Member must satisfy regular expression pattern: ^[a-zA-Z0-9](-*[a-zA-Z0-9])*"
+else ifeq ($(DOCKER_IMAGE_EXISTS),)
+	@echo "Image name * $(DOCKER_IMAGE_NAME) * not found.  Run 'make build_and_push' to create the image and push to ECR"
+else
+	cd container; local_test/train_local.sh $(DOCKER_IMAGE_NAME)
+endif
 
-src/data/processed/y_train.npy: features
+serve_local:
+	cd container; local_test/serve_local.sh $(DOCKER_IMAGE_NAME)
 
-src/data/processed/y_test.npy: features
+predict_local:
+	cd container; local_test/predict.sh local_test/iris_sample.csv
+
+build_and_push:
+	cd container; bash build_and_push.sh $(DOCKER_IMAGE_NAME)
+
+deploy_endpoint:
+	cd container; $(PYTHON_INTERPRETER) deploy_endpoint.py $(DOCKER_IMAGE_NAME) $(S3_BUCKET_PREFIX) $(IAM_ROLE)
 
 #################################################################################
 # Self Documenting Commands                                                     #
