@@ -1,11 +1,4 @@
-# local package
--e .
-pandas
-numpy
-keras
-tensorflow 
-
-# external requirements
+# application dependencies
 click
 kaggle
 Sphinx

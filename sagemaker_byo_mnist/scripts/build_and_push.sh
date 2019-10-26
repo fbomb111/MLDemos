@@ -13,8 +13,8 @@ then
     exit 1
 fi
 
-chmod +x application/train
-chmod +x application/serve
+chmod +x container/application/train
+chmod +x container/application/serve
 
 # Get the account number associated with the current IAM credentials
 account=$(aws sts get-caller-identity --query Account --output text)
@@ -50,4 +50,4 @@ $(aws ecr get-login --region ${region} --no-include-email)
 docker build  -t ${image} .
 docker tag ${image} ${fullname}
 
-docker push ${fullname}
+# docker push ${fullname}

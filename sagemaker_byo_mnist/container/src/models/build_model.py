@@ -6,14 +6,11 @@ from keras.layers import Flatten
 from keras.layers.convolutional import Conv2D
 from keras.layers.convolutional import MaxPooling2D
 import numpy as np
-import pandas as pd
-import sys
+import os
 
-def main(input_files, params):
+data_path = 'data/processed'
 
-    # raw_data = [ pd.read_csv(file, header=None) for file in input_files ]
-    # train_data = pd.concat(raw_data)
-
+def main():
     model=Sequential()
 
     model.add(Conv2D(32,3, activation='relu'))
@@ -29,16 +26,15 @@ def main(input_files, params):
     model.add(Dense(10, activation='softmax'))
     model.compile(loss='categorical_crossentropy',optimizer='adam',metrics=['accuracy'])
 
-    path = 'src/data/processed/'
-    X_train = np.load(path + 'X_train.npy')
-    y_train = np.load(path + 'y_train.npy')
+    X_train = np.load(os.path.join(data_path, 'X_train.npy'))
+    y_train = np.load(os.path.join(data_path, 'y_train.npy'))
 
     model.fit(X_train, y_train,
-            epochs=20,
+            epochs=2,
             batch_size=128,
             verbose=True)
 
-    return model
+    return model 
 
 if __name__ == "__main__":
-    main(sys.argv[1], sys.argv[2])
+    main()

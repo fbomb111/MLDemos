@@ -1,0 +1,11 @@
+# project dependencies
+-e .
+pandas
+numpy
+keras
+tensorflow
+
+# application dependencies
+flask 
+gevent 
+gunicorn

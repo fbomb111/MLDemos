@@ -6,7 +6,7 @@
 #################################################################################
 
 PROJECT_DIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
-PROJECT_NAME = aaml-tc01-mnist
+PROJECT_NAME = sagemaker-byo-mnist
 PYTHON_INTERPRETER = python3
 
 # name that docker will use for creating the image which will also be uploaded to AWS ECR
@@ -32,11 +32,18 @@ endif
 
 ## Install Python Dependencies
 requirements: test_environment
+# If conda is not installing pip packages into your actual conda env...
+# Try running 'path/to/condaenv/bin/pip install -r requirements.txt' manually.  
+# It seems it'll work fine after that.
+# Make sure 'which pip' is returning the conda path, not your system path
 	$(PYTHON_INTERPRETER) -m pip install -U pip setuptools wheel
-	$(PYTHON_INTERPRETER) -m pip install -r requirements.txt
+	# install application dependencies
+	$(PYTHON_INTERPRETER) -m pip install -r requirements.txt	
+	# install project dependencies
+	$(PYTHON_INTERPRETER) -m pip install -r container/requirements.txt	
 
 ## Make Dataset
-data: src/data/external/train.csv src/data/external/test.csv
+data: container/data/external/train.csv container/data/external/test.csv
 
 ## Delete all compiled Python files
 clean:
@@ -48,13 +55,13 @@ lint:
 	flake8 src
 
 ## Set up python interpreter environment
-create_environment:
+environment:
 ifeq (True,$(HAS_CONDA))
 	@echo ">>> Detected conda, creating conda environment."
 ifeq (3,$(findstring 3,$(PYTHON_INTERPRETER)))
-	conda create --name $(PROJECT_NAME) python=3
+	conda create --name $(PROJECT_NAME) python=3 pip
 else
-	conda create --name $(PROJECT_NAME) python=2.7
+	conda create --name $(PROJECT_NAME) python=2.7 pip
 endif
 	@echo ">>> New conda env created. Activate with:\nsource activate $(PROJECT_NAME)"
 else
@@ -77,46 +84,52 @@ git:
 # PROJECT RULES                                                                 #
 #################################################################################
 
-features: src/data/external/train.csv src/data/external/test.csv requirements
-	$(PYTHON_INTERPRETER) src/features/build_features.py
+features: container/data/external/train.csv container/data/external/test.csv requirements
+	cd container; $(PYTHON_INTERPRETER) src/features/build_features.py
 
-predict: models/model.h5 src/data/external/test.csv requirements
-	$(PYTHON_INTERPRETER) src/models/predict_model.py
+train: container/data/processed/X_train.npy container/data/processed/y_train.npy requirements
+	cd container; $(PYTHON_INTERPRETER) src/models/build_model.py
 
-submit: ~/.kaggle/kaggle.json src/data/processed/submission.csv
-	kaggle competitions submit digit-recognizer -f src/data/processed/submission.csv -m "Automated submission"
+predict: container/output/models/model.h5 container/data/external/test.csv requirements
+	cd container; $(PYTHON_INTERPRETER) src/models/predict_model.py data/test/mnist_sample.csv
+
+submit: ~/.kaggle/kaggle.json container/data/processed/submission.csv
+	kaggle competitions submit digit-recognizer -f container/output/submission.csv -m "Automated submission"
 	echo "All submissions:"
 	kaggle competitions submissions digit-recognizer
 
-grade: src/data/processed/submission.csv
+grade: container/data/processed/submission.csv
 	$(PYTHON_INTERPRETER) test/test_project.py
 
 ~/.kaggle/kaggle.json:
 	@echo "Configuration error.  Please review the Kaggle setup instructions at https://github.com/Kaggle/kaggle-api#api-credentials"; exit 1;
 
-src/data/external/train.csv: ~/.kaggle/kaggle.json
-	kaggle competitions download -c digit-recognizer -f train.csv -p src/data/external --force
+container/data/external/train.csv: ~/.kaggle/kaggle.json
+	kaggle competitions download -c digit-recognizer -f train.csv -p container/data/external --force
 
-src/data/external/test.csv: ~/.kaggle/kaggle.json
-	kaggle competitions download -c digit-recognizer -f test.csv -p src/data/external --force
+container/data/external/test.csv: ~/.kaggle/kaggle.json
+	kaggle competitions download -c digit-recognizer -f test.csv -p container/data/external --force
 
-models/model.h5: train
+container/output/models/model.h5: train
 
-src/data/processed/submission.csv: predict
+container/data/processed/submission.csv: predict
 
-src/data/processed/X_train.npy: features
+container/data/processed/X_train.npy: features
 
-src/data/processed/X_test.npy: features
+container/data/processed/X_test.npy: features
 
-src/data/processed/y_train.npy: features
+container/data/processed/y_train.npy: features
 
-src/data/processed/y_test.npy: features
+container/data/processed/y_test.npy: features
 
 #################################################################################
 # DEPLOYMENT COMMANDS                                                           #
 #################################################################################
 
-train_local: src/data/processed/X_train.npy src/data/processed/y_train.npy requirements	
+build_and_push:
+	bash scripts/build_and_push.sh $(DOCKER_IMAGE_NAME)
+
+train_local: 
 ifeq ($(DOCKER_IMAGE_NAME_IS_VALID),)
 	@echo "Image name * $(DOCKER_IMAGE_NAME) * failed to satisfy constraint: Member must satisfy regular expression pattern: ^[a-zA-Z0-9](-*[a-zA-Z0-9])*"
 else ifeq ($(DOCKER_IMAGE_EXISTS),)
@@ -129,13 +142,10 @@ serve_local:
 	cd container; local_test/serve_local.sh $(DOCKER_IMAGE_NAME)
 
 predict_local:
-	cd container; local_test/predict.sh local_test/iris_sample.csv
-
-build_and_push:
-	cd container; bash build_and_push.sh $(DOCKER_IMAGE_NAME)
+	cd container; local_test/predict_local.sh data/test/mnist_sample.csv
 
 deploy_endpoint:
-	cd container; $(PYTHON_INTERPRETER) deploy_endpoint.py $(DOCKER_IMAGE_NAME) $(S3_BUCKET_PREFIX) $(IAM_ROLE)
+	$(PYTHON_INTERPRETER) scripts/deploy_endpoint.py $(DOCKER_IMAGE_NAME) $(S3_BUCKET_PREFIX) $(IAM_ROLE)
 
 #################################################################################
 # Self Documenting Commands                                                     #

@@ -6,17 +6,15 @@ from __future__ import print_function
 import os
 import json
 import pickle
-import StringIO
+from io import StringIO
 import sys
 import signal
 import traceback
-
 import flask
-
 import pandas as pd
+from src.models import predict_model
 
-prefix = '/opt/ml/'
-model_path = os.path.join(prefix, 'model')
+model_path = os.path.join('output', 'models')
 
 # A singleton for holding the model. This simply loads the model and holds it.
 # It has a predict function that does a prediction based on the model and the input data.
@@ -40,7 +38,7 @@ class ScoringService(object):
             input (a pandas dataframe): The data on which to do the predictions. There will be
                 one prediction per row in the dataframe"""
         clf = cls.get_model()
-        return clf.predict(input)
+        return clf.predict(clf)
 
 # The flask app for serving predictions
 app = flask.Flask(__name__)
@@ -56,6 +54,7 @@ def ping():
 
 @app.route('/invocations', methods=['POST'])
 def transformation():
+
     """Do an inference on a single batch of data. In this sample server, we take data as CSV, convert
     it to a pandas data frame for internal use and then convert the predictions back to CSV (which really
     just means one prediction per line, since there's a single column.
@@ -65,18 +64,22 @@ def transformation():
     # Convert from CSV to pandas
     if flask.request.content_type == 'text/csv':
         data = flask.request.data.decode('utf-8')
-        s = StringIO.StringIO(data)
-        data = pd.read_csv(s, header=None)
+        s = StringIO(data)
+        # data = pd.read_csv(s, header=None)
     else:
         return flask.Response(response='This predictor only supports CSV data', status=415, mimetype='text/plain')
 
-    print('Invoked with {} records'.format(data.shape[0]))
 
-    # Do the prediction
-    predictions = ScoringService.predict(data)
+    # # print('Invoked with {} records'.format(data.shape[0]))
+
+    # # Do the prediction
+    # # predictions = ScoringService.predict(data)
+
+    os.chdir('/opt/program')
+    predictions = predict_model.main(s)
 
     # Convert from numpy back to CSV
-    out = StringIO.StringIO()
+    out = StringIO()
     pd.DataFrame({'results':predictions}).to_csv(out, header=False, index=False)
     result = out.getvalue()
 
