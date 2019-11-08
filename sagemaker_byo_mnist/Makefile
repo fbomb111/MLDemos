@@ -1,5 +1,5 @@
 
-.PHONY: clean lint git
+.PHONY: clean data lint requirements sync_to_s3 sync_from_s3
 
 #################################################################################
 # GLOBALS                                                                       #
@@ -14,11 +14,15 @@ DOCKER_IMAGE_NAME = $(PROJECT_NAME)
 DOCKER_IMAGE_NAME_IS_VALID := $(shell [[ $(DOCKER_IMAGE_NAME) =~ ^[a-zA-Z0-9](-*[a-zA-Z0-9])*$$ ]] && echo TRUE || echo FALSE)
 DOCKER_IMAGE_EXISTS := $(shell docker images -q $(DOCKER_IMAGE_NAME))
 
-# S3 bucket prefix
-S3_BUCKET_PREFIX = arn:aws:s3:::sagemaker-us-east-2-117588387775
+# S3 buckets
+S3_BUCKET = sagemaker-us-east-2-117588387775
+S3_BUCKET_PREFIX = arn:aws:s3:::$(S3_BUCKET)
 
 # IAM Role with sagemaker permissions
 IAM_ROLE = arn:aws:iam::117588387775:role/service-role/AmazonSageMaker-ExecutionRole-20190513T204887
+
+# AWS profile
+PROFILE = default
 
 ifeq (,$(shell which conda))
 HAS_CONDA=False
@@ -54,6 +58,22 @@ clean:
 lint:
 	flake8 src
 
+## Upload Data to S3
+sync_to_s3:
+ifeq (default,$(PROFILE))
+	aws s3 sync container/data/ s3://$(S3_BUCKET)/data/
+else
+	aws s3 sync container/data/ s3://$(S3_BUCKET)/data/ --profile $(PROFILE)
+endif
+
+## Download Data from S3
+sync_from_s3:
+ifeq (default,$(PROFILE))
+	aws s3 sync s3://$(S3_BUCKET)/data/ container/data/
+else
+	aws s3 sync s3://$(S3_BUCKET)/data/ container/data/ --profile $(PROFILE)
+endif
+
 ## Set up python interpreter environment
 environment:
 ifeq (True,$(HAS_CONDA))
@@ -75,10 +95,6 @@ endif
 ## Test python environment is setup correctly
 test_environment:
 	$(PYTHON_INTERPRETER) test_environment.py
-
-## Setup git
-git:
-	@bash 'git_config.sh'
 
 #################################################################################
 # PROJECT RULES                                                                 #

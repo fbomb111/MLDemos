@@ -3,6 +3,11 @@
 
 from __future__ import print_function
 
+import numpy as np
+import re, io, base64
+from PIL import Image
+from flask import request
+
 import os
 import json
 import pickle
@@ -12,6 +17,7 @@ import signal
 import traceback
 import flask
 import pandas as pd
+from application import app
 from src.models import predict_model
 
 model_path = os.path.join('output', 'models')
@@ -41,7 +47,58 @@ class ScoringService(object):
         return clf.predict(clf)
 
 # The flask app for serving predictions
-app = flask.Flask(__name__)
+# app = flask.Flask(__name__)
+
+@app.route('/index', methods=['GET', 'POST'])
+def index():
+
+    # image_data = re.sub('^data:image/.+;base64,', '', request.form.items()[1])
+    # print('request.form[img]')
+    # print(image_data)
+    imgData = request.get_data()
+    imgData1 = imgData.decode("utf-8")
+    img_str = re.search(r'base64,(.*)',imgData1).group(1)
+  
+    image_bytes = io.BytesIO(base64.b64decode(img_str))
+    im = Image.open(image_bytes)
+    print('im1')
+    print(im)
+
+    # Resize image to 28x28
+    im = im.resize((28,28))
+    print('im2')
+    print(im)
+
+    arr = np.array(im)[:,:,0:1]
+    print('arr')
+    print(arr)
+
+
+    # nparr = np.fromstring(imgData.decode('base64'), np.uint8)
+    # print('nparr')
+    # print(nparr)
+
+    # im = Image.open(io.BytesIO(base64.b64decode(imgData)))
+   
+    
+
+    # # Resize image to 28x28
+    # im = im.resize((28,28))
+    # print("im2")
+    # print(im)
+
+    # arr = np.array(im)[:,:,0:1]
+    # print("arr")
+    # print(arr)
+
+    res = {"result": 0,
+       "data": [], 
+       "error": ''}
+
+    res["result"] = 1
+    res["data"] = [0.1, 0.2, 0.1, 0.0, 0.0, 0.6, 0.0, 0.0, 0.0, 0.0]
+
+    return res
 
 @app.route('/ping', methods=['GET'])
 def ping():
@@ -84,3 +141,7 @@ def transformation():
     result = out.getvalue()
 
     return flask.Response(response=result, status=200, mimetype='text/csv')
+
+if __name__ == '__main__':
+	# run!
+	app.run()
