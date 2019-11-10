@@ -4,15 +4,13 @@
 from __future__ import print_function
 
 import numpy as np
-import re, io, base64
+import os, sys, re, io, base64
 from PIL import Image
 from flask import request
 
-import os
-import json
+# import json
 import pickle
 from io import StringIO
-import sys
 import signal
 import traceback
 import flask
@@ -46,59 +44,35 @@ class ScoringService(object):
         clf = cls.get_model()
         return clf.predict(clf)
 
-# The flask app for serving predictions
-# app = flask.Flask(__name__)
-
-@app.route('/index', methods=['GET', 'POST'])
+@app.route('/index', methods=['POST'])
 def index():
 
-    # image_data = re.sub('^data:image/.+;base64,', '', request.form.items()[1])
-    # print('request.form[img]')
-    # print(image_data)
+    res = {"result": 0,
+        "data": [], 
+        "error": ''}
+
+    # converts image data from the request and decodes base64 to an image
     imgData = request.get_data()
     imgData1 = imgData.decode("utf-8")
     img_str = re.search(r'base64,(.*)',imgData1).group(1)
-  
     image_bytes = io.BytesIO(base64.b64decode(img_str))
     im = Image.open(image_bytes)
-    print('im1')
-    print(im)
 
     # Resize image to 28x28
     im = im.resize((28,28))
-    print('im2')
-    print(im)
 
+    # don't quite understand, but the shape is 28, 28, 4 and this converts it to 28, 28, 1?
+    # is this just manipulating the channels?
     arr = np.array(im)[:,:,0:1]
-    print('arr')
-    print(arr)
 
+    # returns a multi dimensional array of predictions, but for this example we assume you only want one/the first prediction
+    probs = predict_model.main(arr).tolist()[0]
 
-    # nparr = np.fromstring(imgData.decode('base64'), np.uint8)
-    # print('nparr')
-    # print(nparr)
+     # Return json data
+    res['result'] = 1
+    res['data'] = probs
 
-    # im = Image.open(io.BytesIO(base64.b64decode(imgData)))
-   
-    
-
-    # # Resize image to 28x28
-    # im = im.resize((28,28))
-    # print("im2")
-    # print(im)
-
-    # arr = np.array(im)[:,:,0:1]
-    # print("arr")
-    # print(arr)
-
-    res = {"result": 0,
-       "data": [], 
-       "error": ''}
-
-    res["result"] = 1
-    res["data"] = [0.1, 0.2, 0.1, 0.0, 0.0, 0.6, 0.0, 0.0, 0.0, 0.0]
-
-    return res
+    return flask.jsonify(res)
 
 @app.route('/ping', methods=['GET'])
 def ping():
